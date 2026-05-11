@@ -4,9 +4,11 @@ import ma.enset.gestioncontrats.entities.*;
 import ma.enset.gestioncontrats.repositories.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * Peuple la base H2 avec des données réalistes au démarrage.
@@ -24,9 +26,43 @@ public class DataInitializer implements CommandLineRunner {
     private final ContratHabitationRepository contratHabitationRepository;
     private final ContratSanteRepository contratSanteRepository;
     private final PaiementRepository paiementRepository;
+    private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+
+        // =============================================
+        // 0. CRÉATION DES UTILISATEURS (Auth)
+        // =============================================
+        if (!appUserRepository.existsByUsername("admin")) {
+            appUserRepository.save(AppUser.builder()
+                    .username("admin")
+                    .password(passwordEncoder.encode("admin123"))
+                    .email("admin@assurance.ma")
+                    .enabled(true)
+                    .roles(Set.of("ROLE_ADMIN"))
+                    .build());
+        }
+        if (!appUserRepository.existsByUsername("employe")) {
+            appUserRepository.save(AppUser.builder()
+                    .username("employe")
+                    .password(passwordEncoder.encode("employe123"))
+                    .email("employe@assurance.ma")
+                    .enabled(true)
+                    .roles(Set.of("ROLE_EMPLOYE"))
+                    .build());
+        }
+        if (!appUserRepository.existsByUsername("client")) {
+            appUserRepository.save(AppUser.builder()
+                    .username("client")
+                    .password(passwordEncoder.encode("client123"))
+                    .email("client@assurance.ma")
+                    .enabled(true)
+                    .roles(Set.of("ROLE_CLIENT"))
+                    .build());
+        }
+        System.out.println("✓ 3 utilisateurs créés (admin / employe / client)");
 
         // =============================================
         // 1. CRÉATION DES CLIENTS
@@ -144,42 +180,4 @@ public class DataInitializer implements CommandLineRunner {
         // =============================================
         // 5. PAIEMENTS (pour les contrats validés)
         // =============================================
-        paiementRepository.save(Paiement.builder()
-                .contrat(auto1)
-                .datePaiement(LocalDate.of(2024, 2, 1))
-                .montant(291.67)
-                .modePaiement("VIREMENT")
-                .build());
-
-        paiementRepository.save(Paiement.builder()
-                .contrat(auto1)
-                .datePaiement(LocalDate.of(2024, 3, 1))
-                .montant(291.67)
-                .modePaiement("VIREMENT")
-                .build());
-
-        paiementRepository.save(Paiement.builder()
-                .contrat(hab1)
-                .datePaiement(LocalDate.of(2023, 7, 1))
-                .montant(150.0)
-                .modePaiement("CARTE")
-                .build());
-
-        paiementRepository.save(Paiement.builder()
-                .contrat(sante1)
-                .datePaiement(LocalDate.of(2024, 2, 15))
-                .montant(200.0)
-                .modePaiement("CHEQUE")
-                .build());
-
-        System.out.println("✓ 4 paiements créés");
-        System.out.println("========================================");
-        System.out.println("  Base de données initialisée avec succès");
-        System.out.println("  Clients : " + clientRepository.count());
-        System.out.println("  Contrats Auto : " + contratAutoRepository.count());
-        System.out.println("  Contrats Habitation : " + contratHabitationRepository.count());
-        System.out.println("  Contrats Santé : " + contratSanteRepository.count());
-        System.out.println("  Paiements : " + paiementRepository.count());
-        System.out.println("========================================");
-    }
-}
+        paiement
